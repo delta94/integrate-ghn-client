@@ -1,8 +1,8 @@
 import React from 'react';
 import { Steps, Button, message, Row, Col } from 'antd';
 
-import {connect} from 'react-redux';
-import {updateOrder} from './features/customer/customerSlice';
+import { connect } from 'react-redux';
+import { updateOrder } from './features/customer/customerSlice';
 import 'antd/dist/antd.css'
 import './App.css';
 import { Cart } from './features/cart/Cart';
@@ -25,7 +25,7 @@ const steps = [
         </Col>
         <Col span={12}>
           <h1>Thông Tin Giao Hàng</h1>
-          <Customer disable={false}/>
+          <Customer disable={false} />
         </Col>
       </Row>,
   },
@@ -38,7 +38,7 @@ const steps = [
         </Col>
         <Col span={12}>
           <h1>Thông Tin Giao Hàng</h1>
-          <Customer disable={true}/>
+          <Customer disable={true} />
         </Col>
       </Row>,
   },
@@ -74,7 +74,7 @@ class App extends React.Component<any, AppState> {
     this.setState({ current: 0 });
   }
 
-  createOrder(){
+  createOrder() {
     let data: any = {};
     data.to_name = this.props.customer.info.fullname;
     data.to_phone = "+84" + this.props.customer.info.phone;
@@ -82,13 +82,13 @@ class App extends React.Component<any, AppState> {
     data.to_ward_code = this.props.customer.info.ward;
     data.to_district_id = this.props.customer.info.district;
     data.content = "Create Order From E-Comomerce Web";
-    
+
     let items: any = [];
     console.log(this.props.cart.items);
-    for(let key in this.props.cart.items){
+    for (let key in this.props.cart.items) {
       items.push(this.props.cart.items[key]);
     }
-    
+
     data.weight = items.reduce((total: number, h: any) => total + h.weight, 0);
     data.height = items.reduce((total: number, h: any) => total + h.height, 0);
     data.length = items.reduce((total: number, h: any) => Math.max(total, h.length), 0);
@@ -99,17 +99,17 @@ class App extends React.Component<any, AppState> {
     data.service_type_id = service.service_type_id;
     data.required_note = 'CHOXEMHANGKHONGTHU';
     data.items =  items.map((item: any) => ({name: item.title, code: item.code.toString(), quantity: item.quantity}));
-    data.cod_amount = this.props.customer.total;
-    data.payment_type_id = 2;
+    data.payment_type_id = 1;
     
-    return fetch('http://localhost:8080/order/create', {
+    return fetch('https://backend-tmdt.herokuapp.com/order/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8'
       },
       body: JSON.stringify(data)
     }).then(data => data.json()).then(data => {
-      this.props.updateOrder({order: data.order_code, time: data.expected_delivery_time});
+      this.props.updateOrder({ order: data.order_code, time: data.expected_delivery_time });
+      return data;
     });
   }
 
@@ -134,7 +134,30 @@ class App extends React.Component<any, AppState> {
               //Send to Server
               message.success('Đặt Hàng Thành Công!');
               this.next();
-              this.createOrder();
+              this.createOrder().then((data) => {
+                // Payment
+
+                const payment = {
+                  orderId: data.order_code,
+                  orderInfo: this.props.customer.info.fullname,
+                  amount: this.props.customer.total.toString(),
+                  extraData: `phone=${this.props.customer.info.phone}`
+                };
+
+
+                return fetch('https://backend-tmdt.herokuapp.com/init-payment', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                  },
+                  body: JSON.stringify(payment)
+                }).then(data => data.json()).then(data => {
+
+                  setTimeout(() => {
+                    window.location.href = data.data.payUrl;
+                  }, 2000);
+                });
+              });
             }
             }>
               Hoàn Thành
@@ -146,6 +169,6 @@ class App extends React.Component<any, AppState> {
   }
 }
 
-const mapper = (state: any) => ({customer: state.customer, cart: state.cart});
+const mapper = (state: any) => ({ customer: state.customer, cart: state.cart });
 
-export default connect(mapper, {updateOrder})(App);
+export default connect(mapper, { updateOrder })(App);

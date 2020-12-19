@@ -61,7 +61,7 @@ export const selectorAddress = (state: RootState) => state.address;
 
 export const fetchProvinces = (
 ): AppThunk => async dispatch => {
-  const data = await fetch('http://localhost:8080/address/provinces');
+  const data = await fetch('https://backend-tmdt.herokuapp.com/address/provinces');
   const provinces: Province[] = await data.json();
   dispatch(addProvinces(provinces));
   dispatch(addDistricts([]));
@@ -72,7 +72,7 @@ export const fetchProvinces = (
 export const fetchDitricts = (
   province: number
 ): AppThunk => async dispatch => {
-  const data = await fetch(`http://localhost:8080/address/districts?province=${province}`);
+  const data = await fetch(`https://backend-tmdt.herokuapp.com/address/districts?province=${province}`);
   const districts: District[] = await data.json();
   dispatch(addDistricts(districts));
   dispatch(addWards([]));
@@ -83,7 +83,7 @@ export const fetchDitricts = (
 export const fetchWards = (
   district: number
 ): AppThunk => async dispatch => {
-  const data = await fetch(`http://localhost:8080/address/wards?district=${district}`);
+  const data = await fetch(`https://backend-tmdt.herokuapp.com/address/wards?district=${district}`);
   const wards: Ward[] = await data.json();
   dispatch(addWards(wards));
 };
@@ -91,7 +91,7 @@ export const fetchWards = (
 export const fetchServices = (
   district: number
 ): AppThunk => async dispatch => {
-  const data = await fetch(`http://localhost:8080/address/services?district=${district}`);
+  const data = await fetch(`https://backend-tmdt.herokuapp.com/address/services?district=${district}`);
   const services: Service[] = await data.json();
   dispatch(addServices(services));
 };

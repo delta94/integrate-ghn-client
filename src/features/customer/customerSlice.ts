@@ -85,7 +85,7 @@ export const selectCustomer = (state: RootState) => state.customer;
 
 export const estimatFee = (base: any, price: number): AppThunk => async dispatch => {
 
-  let url = 'http://localhost:8080/order/estimate-cost?';
+  let url = 'https://backend-tmdt.herokuapp.com/order/estimate-cost?';
   
   for(let key in base){
     url += `${key}=${base[key]}&`;
